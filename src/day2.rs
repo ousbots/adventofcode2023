@@ -1,4 +1,4 @@
-use std::env;
+use std::error::Error;
 use std::fs;
 use std::io::{BufRead, BufReader};
 
@@ -15,27 +15,18 @@ struct Set {
     blue: u32,
 }
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    assert!(args.len() == 3);
+pub fn main(part: u32, input: String) -> Result<(), Box<dyn Error>> {
+    let contents = read_file(input)?;
 
-    let first_part = match args[2].as_str() {
-        "--part1" => true,
-        "--part2" => false,
-        _ => panic!("invalid argument"),
-    };
-
-    let contents = read_file(&args[1]);
-
-    if first_part {
-        part_one(contents);
-    } else {
-        part_two(contents);
+    match part {
+        1 => part_one(contents),
+        2 => part_two(contents),
+        _ => panic!("invalid part {}", part),
     }
 }
 
 // Sum the game numbers which are possible with a given maximum of 12 red, 13 green, and 14 blue.
-fn part_one(games: Vec<Play>) {
+fn part_one(games: Vec<Play>) -> Result<(), Box<dyn Error>> {
     let max_red = 12;
     let max_green = 13;
     let max_blue = 14;
@@ -61,10 +52,12 @@ fn part_one(games: Vec<Play>) {
 
     let total: u32 = possible.iter().sum();
     println!("sum of possible game numbers {}", total);
+
+    Ok(())
 }
 
 // Sum the powers of the minimum number of colors needed for each set.
-fn part_two(games: Vec<Play>) {
+fn part_two(games: Vec<Play>) -> Result<(), Box<dyn Error>> {
     let mut minimum_sets: Vec<Set> = Vec::new();
 
     for game in games {
@@ -89,12 +82,14 @@ fn part_two(games: Vec<Play>) {
         .sum();
 
     println!("sum of powers of minimum sets: {}", sum);
+
+    Ok(())
 }
 
-fn read_file(path: &str) -> Vec<Play> {
+fn read_file(path: String) -> Result<Vec<Play>, Box<dyn Error>> {
     let mut contents: Vec<Play> = Vec::new();
 
-    let file = fs::File::open(path).unwrap();
+    let file = fs::File::open(path)?;
     for line in BufReader::new(file).lines() {
         if let Ok(data) = line {
             let mut play = Play {
@@ -106,7 +101,7 @@ fn read_file(path: &str) -> Vec<Play> {
             assert!(orig.len() == 2);
             assert!(&orig[0][0..5] == "Game ");
 
-            let game_number = orig[0][5..orig[0].len()].trim().parse::<u32>().unwrap();
+            let game_number = orig[0][5..orig[0].len()].trim().parse::<u32>()?;
             play.game = game_number;
 
             let raw_sets: Vec<&str> = orig[1].split(";").collect();
@@ -120,7 +115,7 @@ fn read_file(path: &str) -> Vec<Play> {
                 let raw_colors: Vec<&str> = raw_set.split(",").collect();
                 for raw_color in raw_colors {
                     let data: Vec<&str> = raw_color.trim().split(" ").collect();
-                    let count = data[0].parse::<u32>().unwrap();
+                    let count = data[0].parse::<u32>()?;
 
                     match data[1] {
                         "red" => {
@@ -145,5 +140,5 @@ fn read_file(path: &str) -> Vec<Play> {
         }
     }
 
-    contents
+    Ok(contents)
 }

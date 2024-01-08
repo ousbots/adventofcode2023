@@ -1,31 +1,20 @@
-use std::env;
+use std::error::Error;
 use std::fs;
 use std::io::{BufRead, BufReader};
 
-fn main() -> std::io::Result<()> {
-    let args: Vec<String> = env::args().collect();
-    assert!(args.len() == 3);
+pub fn main(part: u32, input: String) -> Result<(), Box<dyn Error>> {
+    let contents = read_file(input)?;
 
-    let first_part = match args[2].as_str() {
-        "--part1" => true,
-        "--part2" => false,
-        _ => panic!("invalid argument"),
-    };
-
-    let contents = read_file(&args[1])?;
-
-    if first_part {
-        part_one(contents);
-    } else {
-        part_two(contents);
+    match part {
+        1 => part_one(contents).ok_or("part one failed".into()),
+        2 => part_two(contents).ok_or("part two failed".into()),
+        _ => panic!("invalid part {}", part),
     }
-
-    Ok(())
 }
 
 // For each line in the input, combine the first and last digits form a two digit number, then sum
 // the numbers of every line.
-fn part_one(contents: Vec<String>) {
+fn part_one(contents: Vec<String>) -> Option<()> {
     let mut numbers: Vec<u32> = Vec::new();
 
     for data in contents.iter() {
@@ -47,16 +36,18 @@ fn part_one(contents: Vec<String>) {
             }
         }
 
-        numbers.push((line[start].to_digit(10).unwrap() * 10) + line[end].to_digit(10).unwrap());
+        numbers.push((line[start].to_digit(10)? * 10) + line[end].to_digit(10)?);
     }
 
     let sum: u32 = numbers.iter().sum();
     println!("part one sum: {}", sum);
+
+    Some(())
 }
 
 // For each line in the input, combine the first and last digits form a two digit number, then sum
 // the numbers of every line. The digits can also be spelled out.
-fn part_two(contents: Vec<String>) {
+fn part_two(contents: Vec<String>) -> Option<()> {
     let mut numbers: Vec<u32> = Vec::new();
 
     for data in contents.iter() {
@@ -87,6 +78,8 @@ fn part_two(contents: Vec<String>) {
 
     let sum: u32 = numbers.iter().sum();
     println!("part two sum: {}", sum);
+
+    Some(())
 }
 
 // Convert a string into a number. The input can be either the character representation or written
@@ -117,7 +110,7 @@ fn convert_num(input: &Vec<char>, position: usize) -> Option<u32> {
     None
 }
 
-fn read_file(path: &str) -> std::io::Result<Vec<String>> {
+fn read_file(path: String) -> std::io::Result<Vec<String>> {
     let mut contents = Vec::new();
     let file = fs::File::open(path)?;
 
