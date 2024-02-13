@@ -3,6 +3,7 @@ use clap::Parser;
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -28,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         1 => day1::main(args.part, path)?,
         2 => day2::main(args.part, path)?,
         3 => day3::main(args.part, path)?,
-        //4 => day4::main(args.part, &args.input)?,
+        4 => day4::main(args.part, path)?,
         _ => panic!("invalid day {}", args.day),
     }
 
